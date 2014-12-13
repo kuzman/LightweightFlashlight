@@ -12,13 +12,15 @@ import java.util.List;
 
 
 public class MainActivity extends Activity implements SurfaceHolder.Callback{
-    private Flash flash = new Flash();
+    //private Flash flash = new Flash();
     SurfaceView preview;
     SurfaceHolder mHolder;
     public Camera camera = null;
     private Camera.Parameters cameraParameters;
     List<String> flashModes;
     private String previousFlashMode = null;
+    String manuName = android.os.Build.MANUFACTURER.toLowerCase();
+    int count = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,22 +78,23 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
     }
 
     public synchronized void open() {
-        String manuName = android.os.Build.MANUFACTURER.toLowerCase();
-        camera = Camera.open();
-        if (camera != null) {
-            cameraParameters = camera.getParameters();
-            flashModes = cameraParameters.getSupportedFlashModes();
-            if (flashModes == null)
-                return;
-            if (flashModes.contains(Camera.Parameters.FLASH_MODE_TORCH))
-                cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-            else
-                cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
-            previousFlashMode = cameraParameters.getFlashMode();
-        }
-        if (previousFlashMode == null) {
-            // could be null if no flash, i.e. emulator
-            previousFlashMode = Camera.Parameters.FLASH_MODE_OFF;
+        if (!manuName.contains("motorola")) {
+            camera = Camera.open();
+            if (camera != null) {
+                cameraParameters = camera.getParameters();
+                flashModes = cameraParameters.getSupportedFlashModes();
+                if (flashModes == null)
+                    return;
+                if (flashModes.contains(Camera.Parameters.FLASH_MODE_TORCH))
+                    cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                else
+                    cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
+                previousFlashMode = cameraParameters.getFlashMode();
+            }
+            if (previousFlashMode == null) {
+                // could be null if no flash, i.e. emulator
+                previousFlashMode = Camera.Parameters.FLASH_MODE_OFF;
+            }
         }
     }
 
@@ -105,24 +108,59 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
     }
 
     public synchronized void on() {
-        if (camera != null) {
-            if (flashModes.contains(Camera.Parameters.FLASH_MODE_TORCH))
-                cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-            else
-                cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
-            camera.setParameters(cameraParameters);
-            camera.startPreview();
-            camera.autoFocus(new Camera.AutoFocusCallback() {
-                public void onAutoFocus(boolean success, Camera camera) {
+        if (manuName.contains("motorola")) {
+            Flash led;
+            try {
+                led = new Flash();
+                led.enable(true);
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        else {
+            if (camera == null)
+                camera = Camera.open();
+            if (camera != null) {
+                flashModes = cameraParameters.getSupportedFlashModes();
+                if (flashModes == null)
+                    return;
+                if (count == 0) {
+                    cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                    camera.setParameters(cameraParameters);
+                    camera.startPreview();
                 }
-            });
+                if (flashModes.contains(Camera.Parameters.FLASH_MODE_TORCH))
+                    cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                else
+                    cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
+                camera.setParameters(cameraParameters);
+//                camera.startPreview();
+                camera.autoFocus(new Camera.AutoFocusCallback() {
+                    public void onAutoFocus(boolean success, Camera camera) {
+                        count = 1;
+                    }
+                });
+            }
         }
     }
 
     public synchronized void off() {
-        if (camera != null) {
-            camera.stopPreview();
-            cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-            camera.setParameters(cameraParameters);
+        if (manuName.contains("motorola")) {
+            Flash led;
+            try {
+                led = new Flash();
+                led.enable(false);
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } else {
+            if (camera != null) {
+                count = 0;
+                camera.stopPreview();
+                cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                camera.setParameters(cameraParameters);
+            }
         }
     }}
