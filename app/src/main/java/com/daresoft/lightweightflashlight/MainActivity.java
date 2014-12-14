@@ -46,6 +46,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
     public void surfaceDestroyed(SurfaceHolder holder) {
         if (camera != null) {
             camera.stopPreview();
+            camera.setPreviewCallback(null);
+            camera.release();
+            camera = null;
         }
         mHolder = null;
     }
@@ -163,4 +166,5 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
                 camera.setParameters(cameraParameters);
             }
         }
-    }}
+    }
+}
