@@ -3,9 +3,11 @@ package com.daresoft.lightweightflashlight;
 import android.app.Activity;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.util.List;
@@ -28,6 +30,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
         setContentView(R.layout.activity_main);
         preview = (SurfaceView) findViewById(R.id.PREVIEW);
         mHolder = preview.getHolder();
+        mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         mHolder.addCallback(this);
     }
 
@@ -40,7 +43,11 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
             camera.setPreviewDisplay(mHolder);
         }
         catch (Exception e)
-        {}
+        {
+            Log.e("PreviewDemo-surfaceCallback",
+                    "Exception in setPreviewDisplay()", e);
+            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
@@ -144,6 +151,15 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
                         count = 1;
                     }
                 });
+//                while(count == 1) {
+//                    camera.setParameters(cameraParameters);
+//
+//                    camera.startPreview();
+//                    camera.autoFocus(new Camera.AutoFocusCallback() {
+//                        public void onAutoFocus(boolean success, Camera camera) {
+//                        }
+//                    });
+//                }
             }
         }
     }
