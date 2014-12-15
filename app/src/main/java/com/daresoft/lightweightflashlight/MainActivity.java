@@ -79,6 +79,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
 
     public void onToggleClicked(View v) {
         if (((ToggleButton) v).isChecked()) {
+            if (!hasFlash()) {
+                Toast.makeText(getApplicationContext(), "LED Not Available", Toast.LENGTH_LONG).show();
+                return;
+            }
             on();
             v.setKeepScreenOn(true);
         } else {
@@ -93,8 +97,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
             if (camera != null) {
                 cameraParameters = camera.getParameters();
                 flashModes = cameraParameters.getSupportedFlashModes();
-                if (flashModes == null)
+                if (flashModes == null) {
+                    Toast.makeText(getApplicationContext(), "LED Not Available", Toast.LENGTH_LONG).show();
                     return;
+                }
                 if (flashModes.contains(Camera.Parameters.FLASH_MODE_TORCH))
                     cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
                 else
@@ -133,8 +139,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
                 camera = Camera.open();
             if (camera != null) {
                 flashModes = cameraParameters.getSupportedFlashModes();
-                if (flashModes == null)
+                if (flashModes == null) {
+                    Toast.makeText(getApplicationContext(), "LED Not Available",Toast.LENGTH_LONG).show();
                     return;
+                }
                 if (count == 0) {
                     cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
                     camera.setParameters(cameraParameters);
@@ -145,21 +153,15 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
                 else
                     cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
                 camera.setParameters(cameraParameters);
-//                camera.startPreview();
                 camera.autoFocus(new Camera.AutoFocusCallback() {
                     public void onAutoFocus(boolean success, Camera camera) {
                         count = 1;
                     }
                 });
-//                while(count == 1) {
-//                    camera.setParameters(cameraParameters);
-//
-//                    camera.startPreview();
-//                    camera.autoFocus(new Camera.AutoFocusCallback() {
-//                        public void onAutoFocus(boolean success, Camera camera) {
-//                        }
-//                    });
-//                }
+                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+                    cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                    camera.setParameters(cameraParameters);
+                }
             }
         }
     }
@@ -182,5 +184,23 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
                 camera.setParameters(cameraParameters);
             }
         }
+    }
+    public boolean hasFlash() {
+        if (camera == null) {
+            return false;
+        }
+
+        Camera.Parameters parameters = camera.getParameters();
+
+        if (parameters.getFlashMode() == null) {
+            return false;
+        }
+
+        List<String> supportedFlashModes = parameters.getSupportedFlashModes();
+        if (supportedFlashModes == null || supportedFlashModes.isEmpty() || supportedFlashModes.size() == 1 && supportedFlashModes.get(0).equals(Camera.Parameters.FLASH_MODE_OFF)) {
+            return false;
+        }
+
+        return true;
     }
 }
