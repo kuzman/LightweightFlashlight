@@ -87,6 +87,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
             v.setKeepScreenOn(true);
         } else {
             off();
+            close();
             v.setKeepScreenOn(false);
         }
     }
@@ -136,7 +137,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
         }
         else {
             if (camera == null)
-                camera = Camera.open();
+                open();
             if (camera != null) {
                 flashModes = cameraParameters.getSupportedFlashModes();
                 if (flashModes == null) {
@@ -179,15 +180,25 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback{
         } else {
             if (camera != null) {
                 count = 0;
-                camera.stopPreview();
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+                    camera.stopPreview();
+                }
                 cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
                 camera.setParameters(cameraParameters);
+                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+                    camera.stopPreview();
+                }
+
+                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+//                    camera.release();
+//                    camera = null;
+                }
             }
         }
     }
     public boolean hasFlash() {
         if (camera == null) {
-            return false;
+           open();
         }
 
         Camera.Parameters parameters = camera.getParameters();
